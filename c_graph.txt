@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define null NULL
+
+typedef struct Node{
+    void *data;//It's not recommended to  allocate data variable :)
+    struct Node **ptr;
+    int ptrSize;
+}node;
+
+node* initNode(void *data) {
+    node *n=(node*)malloc(sizeof(node));
+    if(n!=null) {
+        n->data=data;
+        n->ptr=null;
+        n->ptrSize=0;
+    }
+    return n;
+}
+
+void joiNodes(node *n0,node *n1) {
+    if(n0!=null && n1!=null) {
+        bool lock0=false;
+        bool lock1=false;
+        for(int i=0;i<n0->ptrSize;i++) {
+            if(n0->ptr[i]==n1)
+                lock0=true;
+        }
+        for(int i=0;i<n1->ptrSize;i++) {
+            if(n1->ptr[i]==n0)
+                lock1=true;
+        }
+        if(!lock0) {
+            n0->ptr=(node**)realloc(n0->ptr,sizeof(node*)*(n0->ptrSize+1));
+            if(n0->ptr!=null) {
+                n0->ptr[n0->ptrSize]=n1;
+                n0->ptrSize++;
+            }
+        }
+        if(!lock1) {
+            n1->ptr=(node**)realloc(n1->ptr,sizeof(node*)*(n1->ptrSize+1));
+            if(n1->ptr!=null) {
+                n1->ptr[n1->ptrSize]=n0;
+                n1->ptrSize++;
+            }
+        }
+    }
+}
+
+void detachNode(node *n) {
+    if(n!=null) {
+        for(int i=0;i<n->ptrSize;i++) {
+            int j=0;
+            bool lock=false;
+            while(j<n->ptr[i]->ptrSize && !lock) {
+                if(n->ptr[i]->ptr[j]==n) {
+                    n->ptr[i]->ptr[j]=n->ptr[i]->ptr[n->ptr[i]->ptrSize-1];
+                    n->ptr[i]->ptrSize--;
+                    n->ptr[i]->ptr=(node**)realloc(n->ptr[i]->ptr,
+                    sizeof(node*)*(n->ptr[i]->ptrSize));
+                    lock=true;
+                }
+                j++;
+            }
+        }
+    }
+}
+
+void freeNode(node *n) {
+    if(n!=null) {
+        if(n->ptr!=null)
+            free(n->ptr);
+        free(n);
+    }
+}
+
+node* containsNode(node *n0,node *n1) {
+    for(int i=0;i<n0->ptrSize;i++) {
+        if(n0->ptr[i]==n1)
+            return n1;
+    }
+    return null;
+}
+// testing and list adition must be impemented in this function
+node* sortestPath(node *n0,node *n1) {
+    node *ny,*nx;
+    if(containsNode(n0,n1))
+        printf("found it floor 0\n");
+    else {
+        ny=n0;
+        int j=1;
+        printf("didn't found it on floor %d\n",j);
+        if(ny->ptrSize) {
+            ny=ny->ptr[0];
+            nx=ny;
+            for(int i=0;i<ny->ptrSize;i++) {
+                nx=ny->ptr[i];
+                if(containsNode(nx,n1)==n1) {
+                    printf("found it on floor %d\n",j);
+                    return n1;
+                } else
+                    printf("didn't found it on floor %d\n",j);
+                j++;
+            }
+        }
+    }
+    return null;
+}
+
+int main() {
+    int a=10;
+    node *na=initNode(&a);
+    
+    printf("Node a: %d\n",*(int*)na->data);
+    
+    int b=20;
+    node *nb=initNode(&b);
+    
+    printf("Node b: %d\n",*(int*)nb->data);
+    
+    int c=30;
+    node *nc=initNode(&c);
+    
+    printf("Node c: %d\n",*(int*)nc->data);
+    
+    int d=40;
+    node *nd=initNode(&d);
+    
+    printf("Node d: %d\n",*(int*)nd->data);
+    
+    joiNodes(na,nb);
+    joiNodes(nb,nc);
+    joiNodes(nc,nd);
+    joiNodes(nd,na);
+    
+    //detachNode(na);
+    
+    printf("Node a contains Node d: %d\n",
+    *(int*)containsNode(na,nd)->data);
+    
+    sortestPath(na,nd);
+    
+    printf("\nNode a ptrSize %d\n",na->ptrSize);
+    printf("Node b ptrSize %d\n",nb->ptrSize);
+    printf("Node c ptrSize %d\n",nc->ptrSize);
+    printf("Node d ptrSize %d\n",nc->ptrSize);
+    
+    freeNode(na);
+    freeNode(nb);
+    freeNode(nc);
+    freeNode(nd);
+    return 0;
+}
