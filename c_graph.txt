@@ -5,7 +5,7 @@
 #define null NULL
 
 typedef struct Node{
-    void *data;//It's not recommended to  allocate data variable :)
+    void *data;//It's not recommended to  allocate data in this variable only to select data that you wnat to use or read :)
     struct Node **ptr;
     int ptrSize;
 }node;
